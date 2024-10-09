@@ -34,12 +34,18 @@ makeConf() {
 
   [[ -n "$doNetConf" ]] && network_import="./networking.nix # generated at runtime by nixos-infect"
   cat > /etc/nixos/configuration.nix << EOF
-{ ... }: {
+{ config, pkgs, modulesPath, lib, ... }: {
   imports = [
     ./hardware-configuration.nix
     $network_import
     $NIXOS_IMPORT
   ];
+
+  boot.loader.grub.enable = true;
+  boot.loader.grub.device = "/dev/sda";
+  boot.loader.grub.varsion = 2;
+  boot.loader.grub.timeout = 5;
+  boot.kernelPackages = pkgs.linuxPackages_latest;
 
   boot.tmp.cleanOnBoot = true;
   zramSwap.enable = ${zramswap};
@@ -51,26 +57,23 @@ makeConf() {
     trimmed_line=$(echo -n "$line" | xargs)
     echo -n "''$trimmed_line'' "
   done <<< "$keys")];
+
+  # XFCE Desktop Environment
+  services.xserver.displayManager.defaultSession = "xfce";
+  environment.systemPackages = with pkgs; [
+    firefox
+    helix 
+    vscode
+  ]  
+  
+  users.users.$SUDO_USER = {
+    isNormalUser = true;
+    extraGroups = [ "wheel" "video" "audio" "input" ]; # Add user to essential groups
+  };
+
   system.stateVersion = "23.11";
 }
 EOF
-
-  if isEFI; then
-    bootcfg=$(cat << EOF
-  boot.loader.grub = {
-    efiSupport = true;
-    efiInstallAsRemovable = true;
-    device = "nodev";
-  };
-  fileSystems."/boot" = { device = "$esp"; fsType = "vfat"; };
-EOF
-)
-  else
-    bootcfg=$(cat << EOF
-  boot.loader.grub.device = "$grubdev";
-EOF
-)
-  fi
 
   availableKernelModules=('"ata_piix"' '"uhci_hcd"' '"xen_blkfront"')
   if isX86_64; then
