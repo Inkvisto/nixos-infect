@@ -64,7 +64,7 @@ makeConf() {
     firefox
     helix 
     vscode
-  ]  
+  ];
   
   users.users.$SUDO_USER = {
     isNormalUser = true;
