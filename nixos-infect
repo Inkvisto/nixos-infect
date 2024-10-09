@@ -59,11 +59,22 @@ makeConf() {
   done <<< "$keys")];
 
   # XFCE Desktop Environment
+   services.xserver = {
+    enable = true;   
+    desktopManager = {
+      xterm.enable = false;
+      xfce = {
+        enable = true;
+        noDesktop = true;
+        enableXfwm = false;
+      };
+    };
+    windowManager.i3.enable = true;
+  };
   services.xserver.displayManager.defaultSession = "xfce";
   environment.systemPackages = with pkgs; [
     firefox
     helix 
-    vscode
   ];
   
   users.users.$SUDO_USER = {
