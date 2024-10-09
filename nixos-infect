@@ -77,7 +77,7 @@ makeConf() {
     helix 
   ];
   
-  users.users.$SUDO_USER = {
+  users.users.egor = {
     isNormalUser = true;
     extraGroups = [ "wheel" "video" "audio" "input" ]; # Add user to essential groups
   };
